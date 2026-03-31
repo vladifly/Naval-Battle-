@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="jansi-jansi-2.4.3">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/jansi-jansi-2.4.3.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/Downloads/jansi-jansi-2.4.3.zip!/jansi-jansi-2.4.3/src/main/java" />
+      <root url="jar://$USER_HOME$/Downloads/jansi-jansi-2.4.3.zip!/jansi-jansi-2.4.3/src/test/java" />
+    </SOURCES>
+  </library>
+</component>
