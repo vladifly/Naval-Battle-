@@ -5,7 +5,6 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class Game {
-
     public static final String RESET = "\u001B[0m";
     public static final String GRAY = "\u001B[90m";
     public static final String RED = "\u001B[31m";
@@ -16,10 +15,11 @@ public class Game {
     static String[][] botMap = new String[10][10];
 
     static AnotherShips anotherShips; static OurShips ourShips;
-
+    static int mod = 1;
     static Scanner scanner = new Scanner(System.in);
     // в конструкторе инициализируем два поля: врага и наше
-    public Game() {
+    public Game(int mod) {
+        this.mod = mod;
         // заполняем все поле точками D (море)
         for (int i = 0; i < yourMap.length; i++) {
             for (int j = 0; j < yourMap[i].length; j++) {
@@ -39,7 +39,7 @@ public class Game {
 
         for (int i = 0; i < 10; i++) {System.out.println();}
         System.out.println("Your map:");
-        printMap(yourMap);
+        printMap(yourMap, mod);
 //        printMap(botMap); // после теста убрать
     }
 
@@ -89,16 +89,16 @@ public class Game {
                 shipStatus = isShipKilled(shipWrecked, "another") ? "killed" : "wounded";
                 if (shipStatus.equals("killed")) {
                     System.out.println("The enemy ship has been destroyed!");
-                    printMap(botMapHits);
+                    printMap(botMapHits, mod);
                 } else {
                     System.out.println("The enemy ship is wounded!");
-                    printMap(botMapHits);
+                    printMap(botMapHits, mod);
 
                 }
             } else {
                 System.out.println("A miss!");
                 botMapHits[row][col] = "D";
-                printMap(botMapHits);
+                printMap(botMapHits, mod);
             }
 
             System.out.println("Bot's try...");
@@ -175,7 +175,7 @@ public class Game {
 
             if (yourMap[botRow][botCol].equals("S")) {
                 yourMap[botRow][botCol] = "X";
-                printMap(yourMap);
+                printMap(yourMap, mod);
                 System.out.println("The bot hit your ship!");
 
                 if (!hunting) {
@@ -211,7 +211,7 @@ public class Game {
                 }
             } else {
                 yourMap[botRow][botCol] = "B";
-                printMap(yourMap);
+                printMap(yourMap, mod);
                 System.out.println("The bot missed!");
                 if (hunting && firstHit != null && (directionRow != 0 || directionCol != 0)) {
                     directionRow = -directionRow;
@@ -662,30 +662,53 @@ public class Game {
         }
     }
 
-    public static void printMap(String[][] map) {
-        System.out.println(GREEN + "   1  2  3  4  5  6  7  8  9  10" + RESET);
-        if (map != null) {
+    public static void printMap(String[][] map, int mod) {
+        if (mod == 1) {
+            System.out.println("   1  2  3  4  5  6  7  8  9  10");
             for (int i = 0; i < map.length; i++) {
-                System.out.printf(GREEN + "%s", (i == 0 ? "A  " :
-                        (i == 1 ? "B  " :
-                                (i == 2 ? "C  " :
-                                        (i == 3 ? "D  " :
-                                                (i == 4 ? "E  " :
-                                                        (i == 5 ? "F  " :
-                                                                (i == 6 ? "G  " :
-                                                                        (i == 7 ? "H  " :
-                                                                                (i == 8 ? "I  " :
-                                                                                        (i == 9 ? "J  " : "K")))))))))) + RESET);
+                String rowLetter = switch (i) {
+                    case 0 -> "A";
+                    case 1 -> "B";
+                    case 2 -> "C";
+                    case 3 -> "D";
+                    case 4 -> "E";
+                    case 5 -> "F";
+                    case 6 -> "G";
+                    case 7 -> "H";
+                    case 8 -> "I";
+                    default -> "J";
+                };
+                System.out.print(rowLetter + "  ");
                 for (int j = 0; j < map[i].length; j++) {
-                    System.out.print(
-                        map[i][j].equals("X") ? RED + "X  " + RESET :
-                        map[i][j].equals("S") ? YELLOW + "S  " + RESET :
-                        map[i][j].equals("D") ? BLUE + "D  " + RESET :
-                        map[i][j].equals("B") ? GRAY + "B  " + RESET :
-                        RESET + "O  " + RESET
-                    );
+                    System.out.print(map[i][j] + "  ");
                 }
                 System.out.println();
+            }
+        } else {
+            System.out.println(GREEN + "   1  2  3  4  5  6  7  8  9  10" + RESET);
+            if (map != null) {
+                for (int i = 0; i < map.length; i++) {
+                    System.out.printf(GREEN + "%s", (i == 0 ? "A  " :
+                            (i == 1 ? "B  " :
+                                    (i == 2 ? "C  " :
+                                            (i == 3 ? "D  " :
+                                                    (i == 4 ? "E  " :
+                                                            (i == 5 ? "F  " :
+                                                                    (i == 6 ? "G  " :
+                                                                            (i == 7 ? "H  " :
+                                                                                    (i == 8 ? "I  " :
+                                                                                            (i == 9 ? "J  " : "K")))))))))) + RESET);
+                    for (int j = 0; j < map[i].length; j++) {
+                        System.out.print(
+                                map[i][j].equals("X") ? RED + "X  " + RESET :
+                                        map[i][j].equals("S") ? YELLOW + "S  " + RESET :
+                                                map[i][j].equals("D") ? BLUE + "D  " + RESET :
+                                                        map[i][j].equals("B") ? GRAY + "B  " + RESET :
+                                                                RESET + "O  " + RESET
+                        );
+                    }
+                    System.out.println();
+                }
             }
         }
     }

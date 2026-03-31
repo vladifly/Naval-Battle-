@@ -31,13 +31,13 @@ public class OurShips {
         String[] direction = {""};
 
         System.out.println("Enter the coordinates where your four-deck ship will be located");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         // используем метод getCoordinate для получения первого поля судна
         quartet[0] = Game.getCoordinate(yourMap);
         // проверка на то, ввел ли пользователь /clear в getCoordinate
         if (quartet[0] == null) {return getQuartet(yourMap);}
         yourMap[quartet[0][0]][quartet[0][1]] = "S";
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         // проверка на то, ввел ли пользователь /clear в getCoordinate
         while(!isAvailable) {
             // используем метод getCoordinate для получения второго поля судна
@@ -54,7 +54,7 @@ public class OurShips {
                 System.out.println("Please enter correct coordinates of ship");
             }
         }
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         isAvailable = false;
         while(!isAvailable) {
             // используем метод getCoordinate для получения второго поля судна
@@ -72,7 +72,7 @@ public class OurShips {
                 System.out.println("Please enter correct coordinates of ship");
             }
         }
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         isAvailable = false;
         while(!isAvailable) {
             // используем метод getCoordinate для получения второго поля судна
@@ -92,7 +92,7 @@ public class OurShips {
             }
         }
         System.out.println("Your four-deck ship: ");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         return quartet;
     }
 
@@ -110,7 +110,7 @@ public class OurShips {
         String[] direction = {""};
 
         System.out.println("Enter the coordinates where your three-decked ship will be located");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         // используем метод getCoordinate для получения первого поля судна
         while(!(isAvailable)) {
             trio[0] = Game.getCoordinate(yourMap);
@@ -122,7 +122,7 @@ public class OurShips {
         if (trio[0] == null) {return getTrio(yourMap);}
         yourMap[trio[0][0]][trio[0][1]] = "S";
         isAvailable = false;
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         // проверка на то, ввел ли пользователь /clear в getCoordinate
         while(!isAvailable) {
             // используем метод getCoordinate для получения второго поля судна
@@ -139,7 +139,7 @@ public class OurShips {
                 System.out.println("Please enter correct coordinates of ship");
             }
         }
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         isAvailable = false;
         while(!isAvailable) {
             // используем метод getCoordinate для получения второго поля судна
@@ -158,7 +158,7 @@ public class OurShips {
             }
         }
         System.out.println("Your three-decked ship: ");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         return trio;
     }
 
@@ -177,7 +177,7 @@ public class OurShips {
         String[] direction = {""};
 
         System.out.println("Enter the coordinates where your double-decked ship will be located");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         // используем метод getCoordinate для получения первого поля судна
         while(!(isAvailable)) {
             duo[0] = Game.getCoordinate(yourMap);
@@ -189,7 +189,7 @@ public class OurShips {
         if (duo[0] == null) {return getDuo(yourMap);}
         yourMap[duo[0][0]][duo[0][1]] = "S";
         isAvailable = false;
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         // проверка на то, ввел ли пользователь /clear в getCoordinate
         while(!isAvailable) {
             // используем метод getCoordinate для получения второго поля судна
@@ -207,7 +207,7 @@ public class OurShips {
             }
         }
         System.out.println("Your double-decked ship: ");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         return duo;
     }
 
@@ -224,7 +224,7 @@ public class OurShips {
         String[] direction = {""};
 
         System.out.println("Enter the coordinates where your single-deck ship will be located");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         // используем метод getCoordinate для получения первого поля судна
         while(!(isAvailable)) {
             uno = Game.getCoordinate(yourMap);
@@ -234,7 +234,7 @@ public class OurShips {
             if (!(isAvailable)) {System.out.println("Please enter correct coordinates of ship");}
         }
         System.out.println("Your single-deck ship: ");
-        Game.printMap(yourMap);
+        Game.printMap(yourMap, Game.mod);
         return uno;
     }
 
