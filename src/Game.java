@@ -40,7 +40,7 @@ public class Game {
         for (int i = 0; i < 10; i++) {System.out.println();}
         System.out.println("Your map:");
         printMap(yourMap, mod);
-//        printMap(botMap); // после теста убрать
+        //        printMap(botMap); // после теста убрать
     }
 
     public static void game(String[][] yourMap, String[][] botMap) {
