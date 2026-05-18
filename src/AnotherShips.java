@@ -1,5 +1,5 @@
 import java.util.Random;
-public class AnotherShips {
+public class AnotherShips extends Ships {
     public int[][] quartet = new int[4][3];
     public int[][] trio1 = new int[3][3];
     public int[][] trio2 = new int[3][3];
@@ -8,13 +8,7 @@ public class AnotherShips {
     public int[] uno1 = new int[3];
     public int[] uno2 = new int[3];
     public AnotherShips(int[][] quartet, int[][] trio1, int[][] trio2, int[][] duo1, int[][] duo2, int[] uno1, int[] uno2) {
-        this.quartet = quartet;
-        this.trio1 = trio1;
-        this.trio2 = trio2;
-        this.duo1 = duo1;
-        this.duo2 = duo2;
-        this.uno1 = uno1;
-        this.uno2 = uno2;
+        super(quartet, trio1, trio2, duo1, duo2, uno1, uno2);
     }
 
     public static int[] getUno(String[][] botMap) {
