@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -44,7 +45,9 @@ public class Game {
     }
 
     public static void game(String[][] yourMap, String[][] botMap) {
-        String[][] botMapHits = new String[10][10];
+        ArrayList<Integer> noBotWillHit = new ArrayList<>();
+
+        String[][] ourHitField = new String[10][10];
         int[][] availableFields = new int[100][2];
         String[][] botsMapHit = new String[10][10];
 
@@ -65,9 +68,9 @@ public class Game {
         String mayBeDirection = "";
         Random random = new Random();
         
-        for (int i = 0; i < botMapHits.length; i++) {
-            for (int j = 0; j < botMapHits[i].length; j++) {
-                botMapHits[i][j] = "O";
+        for (int i = 0; i < ourHitField.length; i++) {
+            for (int j = 0; j < ourHitField[i].length; j++) {
+                ourHitField[i][j] = "O";
                 botsMapHit[i][j] = "O";
                 availableFields[i * 10 + j] = new int[]{i, j};
             }
@@ -83,22 +86,22 @@ public class Game {
             int col = coordinates[1];
 
             if (botMap[row][col].equals("S")) {
-                botMapHits[row][col] = "X";
+                ourHitField[row][col] = "X";
                 shipWrecked = whatsShip(botMap, row, col, anotherShips);
                 markShipHit(shipWrecked, row, col, anotherShips);
                 shipStatus = isShipKilled(shipWrecked, anotherShips) ? "killed" : "wounded";
                 if (shipStatus.equals("killed")) {
                     System.out.println("The enemy ship has been destroyed!");
-                    printMap(botMapHits, mod);
+                    printMap(ourHitField, mod);
                 } else {
                     System.out.println("The enemy ship is wounded!");
-                    printMap(botMapHits, mod);
+                    printMap(ourHitField, mod);
 
                 }
             } else {
                 System.out.println("A miss!");
-                botMapHits[row][col] = "D";
-                printMap(botMapHits, mod);
+                ourHitField[row][col] = "D";
+                printMap(ourHitField, mod);
             }
 
             System.out.println("Bot's try...");
@@ -179,26 +182,26 @@ public class Game {
 
                 if (botRow + 1 < 10) {
                     if (!yourMap[botRow+1][botCol].equals("X") && !yourMap[botRow+1][botCol].equals("S")) {
-                        botsMapHit[botRow+1][botCol] = "B";
-                        yourMap[botRow+1][botCol] = "B";
+                        noBotWillHit.add(botRow+1);
+                        noBotWillHit.add(botCol);
                     }
                 }
                 if (botRow - 1 >= 0) {
                     if (!yourMap[botRow-1][botCol].equals("X") && !yourMap[botRow-1][botCol].equals("S")) {
-                        botsMapHit[botRow-1][botCol] = "B";
-                        yourMap[botRow-1][botCol] = "B";
+                        noBotWillHit.add(botRow-1);
+                        noBotWillHit.add(botCol);
                     }
                 }
                 if (botCol + 1 < 10) {
                     if (!yourMap[botRow][botCol+1].equals("X") && !yourMap[botRow][botCol+1].equals("S")) {
-                        botsMapHit[botRow][botCol+1] = "B";
-                        yourMap[botRow][botCol+1] = "B";
+                        noBotWillHit.add(botRow);
+                        noBotWillHit.add(botCol+1);
                     }
                 }
                 if (botCol - 1 >= 0) {
                     if (!yourMap[botRow][botCol-1].equals("X") && !yourMap[botRow][botCol-1].equals("S")) {
-                        botsMapHit[botRow][botCol-1] = "B";
-                        yourMap[botRow][botCol-1] = "B";
+                        noBotWillHit.add(botRow);
+                        noBotWillHit.add(botCol-1);
                     }
                 }
 
@@ -223,6 +226,14 @@ public class Game {
                 shipStatus = isShipKilled(shipWrecked, ourShips) ? "killed" : "wounded";
 
                 if (shipStatus.equals("killed")) {
+                    for (int i = 0; i < noBotWillHit.size(); i+=2) {
+                        int irow = noBotWillHit.get(i);
+                        int icol = noBotWillHit.get(i+1);
+
+                        yourMap[irow][icol] = "B";
+                        botsMapHit[irow][icol] = "B";
+                    }
+
                     System.out.println("Your ship has been destroyed!");
                     hunting = false;
                     firstHit = null;
