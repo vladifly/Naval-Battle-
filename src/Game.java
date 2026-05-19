@@ -80,8 +80,10 @@ public class Game {
         System.out.println();
         
         while (!isAll) {
-            System.out.println("Enter the coordinates where you want to hit");
-            int[] coordinates = getCoordinate(yourMap);
+            int[] coordinates = null;
+            while (coordinates == null) {
+                coordinates = getCoordinate(yourMap);
+            }
             int row = coordinates[0];
             int col = coordinates[1];
 
@@ -523,8 +525,9 @@ public class Game {
         while (firstCoordinate == -1) {
             firstCoordinate = getInt();
             if (firstCoordinate == -2) {
-                // возвращаем нулл, если пользователь ввел /clear
-                return null;
+                // возвращаем этот же метод', если пользователь ввел /clear
+                System.out.println("Please write correct numeric coordinate");
+                return getCoordinate(map);
             }
         }
         // получаем вторую буквенную координату (уже в индексе)
