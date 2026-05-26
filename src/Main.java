@@ -3,6 +3,7 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+        // print rules
         System.out.printf("Welcome to naval battle game!%n%n");
         System.out.printf("Rules:%n  You and your opponent have a 10x10 field where " +
                 "%n  the ships are located: his ships are on his field, and your ships are on your field. Your goal is " +
@@ -23,13 +24,16 @@ public class Main {
                 "entered this command or have ever entered it, you don't need to perform this operation again, as it will work permanently after %n" +
                 "the first time.%nEnter your mod (1 or 2) --> ");
 
+        // the user select mod the one he will going to play with (colored or uncolored)
         int mod = getMode();
         System.out.println();
 
+        // we create Game class instance and start game method
         Game gameClass = new Game(mod);
         gameClass.game(gameClass.yourMap, gameClass.botMap);
     }
 
+    // a method to get player's mode
     public static int getMode() {
         Scanner scanner = new Scanner(System.in);
         String strMod;
@@ -37,12 +41,10 @@ public class Main {
         try {
             strMod = scanner.nextLine().trim();
 
-            if (strMod.equals("1") || strMod.equals("2")) {
-                mod = Integer.parseInt(strMod);
-            }
+            mod = Integer.parseInt(strMod);
         } catch (Exception e) {
             System.out.println("Enter mode");
-            scanner.nextLine();
+            return getMode();
         }
 
         System.out.println("Your mod: " + (mod == 1 ? "no color" : "color"));

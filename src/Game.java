@@ -5,23 +5,34 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+// Before reading this code you have to understand that:
+// row + 1 = forward direction
+// row - 1 = backward direction
+// column + 1 = right direction
+// column - 1 = left direction
+
 public class Game {
+    // constants to storing colors to display colored text in the terminal
     public static final String RESET = "\u001B[0m";
     public static final String GRAY = "\u001B[90m";
     public static final String RED = "\u001B[31m";
     public static final String GREEN = "\u001B[32m";
     public static final String YELLOW = "\u001B[33m";
     public static final String BLUE = "\u001B[34m";
+
+    // player's ship map and bot's ship map
     static String[][] yourMap = new String[10][10];
     static String[][] botMap = new String[10][10];
-
+    // these classes will keep ships and methods to work with it
     static AnotherShips anotherShips; static OurShips ourShips;
-    static int mod = 1;
+    static int mod = 1; // by default 1
+    // one scanner per class
     static Scanner scanner = new Scanner(System.in);
-    // в конструкторе инициализируем два поля: врага и наше
+    // initialize two fields in constructor: our field and the bot's field
     public Game(int mod) {
+        // we set the mode which player entered
         this.mod = mod;
-        // заполняем все поле точками D (море)
+        // filling in the intire field with dots D (sea)
         for (int i = 0; i < yourMap.length; i++) {
             for (int j = 0; j < yourMap[i].length; j++) {
                 yourMap[i][j] = "D";
@@ -32,42 +43,61 @@ public class Game {
                 botMap[i][j] = "D";
             }
         }
-        // создаем объект AnotherShips, где будут храниться корабли бота противника
+        // read description about constructor in Ships class
+        // we create an AnotherShips object where the bot ships will be stored
         anotherShips = new AnotherShips(AnotherShips.getShip(botMap, 4), AnotherShips.getShip(botMap, 3), AnotherShips.getShip(botMap, 3), AnotherShips.getShip(botMap, 2), AnotherShips.getShip(botMap, 2), AnotherShips.getUno(botMap), AnotherShips.getUno(botMap));
-        // создаем объект OurShips, где будут храниться корабли игрока
+        // we create an OurShips object where the our ships will be stored
         ourShips = new OurShips(OurShips.getQuartet(yourMap), OurShips.getTrio(yourMap), OurShips.getTrio(yourMap), OurShips.getDuo(yourMap), OurShips.getDuo(yourMap), OurShips.getUno(yourMap), OurShips.getUno(yourMap));
 
 
         for (int i = 0; i < 10; i++) {System.out.println();}
+        // print the resulting
         System.out.println("Your map:");
         printMap(yourMap, mod);
-        //        printMap(botMap); // после теста убрать
+        //        printMap(botMap); //
     }
 
     public static void game(String[][] yourMap, String[][] botMap) {
+        /* This list is necessary to save the coordinates that the bot will not access.
+         According to the rules cannot set ships which touch another ships
+          accordingly, near the killed ship senselessly to hit fields
+          because the rules don't allow ships to be placed there. After every
+          killed ship deck we will enter coordinates to this list, which
+          after total annihilation ship will output and tag as checked */
         ArrayList<Integer> noBotWillHit = new ArrayList<>();
 
+        /* our shots map */
         String[][] ourHitField = new String[10][10];
+        /* an array to keep available cells where bot can hit */
         int[][] availableFields = new int[100][2];
+        /* bot's shots map */
         String[][] botsMapHit = new String[10][10];
 
+        /* The smart bot when hit into the ship start to groping him to total destroy.
+           This groping called hunting mode. */
         boolean hunting = false;
+        /* variables which keep  potential ship's decks when hunting mode, by default it equals -1 */
         int targetRow = -1;
         int targetCol = -1;
+
+        /* Very important variables which keep possible direction in which located ship's decks when hunting mode.
+        * By game rules we can locate ship only VERTICAL or HORIZONTAL. If we after first hit to ship
+        * moved to right field and found there another one ship's deck then there's no meaning in cheking deck located up or down, because
+        * we can assuredly say that ship is located horizontal. By default it equals 0 */
         int directionRow = 0;
         int directionCol = 0;
 
+        /* a variable which keep coordinates of the first hit on the ship */
         int[] firstHit = new int[2];
-        int counter = 0;
-        int step = 1;
+        /* a variable for ship which wounded */
         String shipWrecked;
+        /* variable which keep game result (draw, win, loss) */
         String isStrAll;
+        /* ship status (destroyed, wounded) */
         String shipStatus;
-        boolean isShipWrecked = false;
-        boolean isProbing = false;
-        String mayBeDirection = "";
         Random random = new Random();
-        
+
+        /* we fill our map with emptiness */
         for (int i = 0; i < ourHitField.length; i++) {
             for (int j = 0; j < ourHitField[i].length; j++) {
                 ourHitField[i][j] = "O";
@@ -75,22 +105,32 @@ public class Game {
                 availableFields[i * 10 + j] = new int[]{i, j};
             }
         }
-        
+
+        /* if it becomes true then game is over */
         boolean isAll = false;
         System.out.println();
-        
+
+        /* game */
         while (!isAll) {
+            /* coordinates where we want to hit */
             int[] coordinates = null;
+            /* if user enter /clear, then coordinates will be null and user will can
+            * choose coordinates for the hit again */
             while (coordinates == null) {
                 coordinates = getCoordinate(yourMap);
             }
+            /* hit's row and hit's column */
             int row = coordinates[0];
             int col = coordinates[1];
 
+            /* if ship was located in field where player hit then we tag it on the map */
             if (botMap[row][col].equals("S")) {
                 ourHitField[row][col] = "X";
+                /* we find the ship which we hited by whatsShip method */
                 shipWrecked = whatsShip(botMap, row, col, anotherShips);
+                /* tag hit */
                 markShipHit(shipWrecked, row, col, anotherShips);
+                /* output result to user */
                 shipStatus = isShipKilled(shipWrecked, anotherShips) ? "killed" : "wounded";
                 if (shipStatus.equals("killed")) {
                     System.out.println("The enemy ship has been destroyed!");
@@ -100,12 +140,14 @@ public class Game {
                     printMap(ourHitField, mod);
 
                 }
+                /* if we didn't hit the target then tag it and output to user */
             } else {
                 System.out.println("A miss!");
                 ourHitField[row][col] = "D";
                 printMap(ourHitField, mod);
             }
 
+            /* a move transfer to the bot, for imitation that bot is thinking was made delay per second */
             System.out.println("Bot's try...");
             try {
                 TimeUnit.SECONDS.sleep(1);
@@ -114,29 +156,46 @@ public class Game {
                 e.printStackTrace();
             }
 
+            /* coordinates where bot will hit */
             int[] botsCoordinates = null;
 
+            /* if we're already feeling the ship */
             if (hunting) {
+                /* if potential ship's deck in play field borders and isn't O (nothing) */
                 if (targetRow >= 0 && targetRow < 10 && targetCol >= 0 && targetCol < 10 && botsMapHit[targetRow][targetCol].equals("O")) {
-                    botsCoordinates = new int[]{targetRow, targetCol};
+                    /* check this field */
+                    botsCoordinates = new int[]{targetRow, targetCol};/*  */
                 } else {
+                    /* else we create an array which will keep directions where can be located bot's ship deck */
                     int[][] dirs = {{-1,0}, {1,0}, {0,-1}, {0,1}};
+                    /* possible fields where ship's deck can be */
                     ArrayList<int[]> candidates = new ArrayList<>();
+                    /* we're filling in this list with possible fields. */
                     for (int[] d : dirs) {
                         int nr = firstHit[0] + d[0];
                         int nc = firstHit[1] + d[1];
+                        /* if they're within the play field borders and aren't shot through */
                         if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && botsMapHit[nr][nc].equals("O")) {
                             candidates.add(new int[]{nr, nc});
                         }
                     }
+                    /* if we found potential fields where can be ship's deck then check one of it */
                     if (!candidates.isEmpty()) {
+                        /* choose one of it by random */
                         int[] chosen = candidates.get(random.nextInt(candidates.size()));
                         botsCoordinates = chosen;
+                        /* Using this formula, we can determine the direction of the ship's location.
+                        *  For example, if firstHit = { 5, 5 } and we checked right field
+                        *  chosen = { 5, 6 } then according this formula we can calculate direction.
+                        *  Specifically in this case direction row will be 0 and direction column will be 1 */
                         directionRow = chosen[0] - firstHit[0];
                         directionCol = chosen[1] - firstHit[1];
+                        /* Now we apply direction and add direction to already chose field and get potential
+                        *  field with ship's deck */
                         targetRow = chosen[0] + directionRow;
                         targetCol = chosen[1] + directionCol;
                     } else {
+                        /* if no potential fields with ship's decks then we reset all */
                         hunting = false;
                         firstHit = null;
                         targetRow = -1;
@@ -147,17 +206,21 @@ public class Game {
                 }
             }
 
+            /* if bot didn't choose field to hit, it choose it random. Generally, this code block is working if hunting = false */
             if (botsCoordinates == null) {
+                /* we create list of possible to hit fields based on availableFields. If member of availableFields = null, means bot already used it. */
                 ArrayList<int[]> valid = new ArrayList<>();
                 for (int i = 0; i < availableFields.length; i++) {
                     if (availableFields[i] != null) valid.add(availableFields[i]);
                 }
+                /* if the bot didn't have any fields to hit, then the entire field was checked */
                 if (valid.isEmpty()) {
                     isAll = true;
-                    break;
                 }
+                /* we choose any of the possible to hit fields by random */
                 int idx = random.nextInt(valid.size());
                 botsCoordinates = valid.get(idx);
+                /* and tag it as null to avoid hitting it again */
                 for (int i = 0; i < availableFields.length; i++) {
                     if (availableFields[i] != null && availableFields[i][0] == botsCoordinates[0] && availableFields[i][1] == botsCoordinates[1]) {
                         availableFields[i] = null;
@@ -166,9 +229,11 @@ public class Game {
                 }
             }
 
+            /* we devide botsCoordinates to row variable and column variable */
             int botRow = botsCoordinates[0];
             int botCol = botsCoordinates[1];
 
+            /* and tag it as null to avoid hitting it again */
             for (int i = 0; i < availableFields.length; i++) {
                 if (availableFields[i] != null && availableFields[i][0] == botRow && availableFields[i][1] == botCol) {
                     availableFields[i] = null;
@@ -176,12 +241,17 @@ public class Game {
                 }
             }
 
+            /* tag this field as checked in bot's shots map */
             botsMapHit[botRow][botCol] = "B";
 
+            /* if bot missed */
             if (yourMap[botRow][botCol].equals("S")) {
+                /* we tag it in our map and output result to user */
                 yourMap[botRow][botCol] = "X";
                 System.out.println("The bot hit your ship!");
 
+                /* we add fields where never will be another ship located to the noBotWillHit list
+                because of the rules (read the description this list at beginning the game method) */
                 if (botRow + 1 < 10) {
                     if (!yourMap[botRow+1][botCol].equals("X") && !yourMap[botRow+1][botCol].equals("S")) {
                         noBotWillHit.add(botRow+1);
@@ -207,6 +277,7 @@ public class Game {
                     }
                 }
 
+                /* one more time reset all if we aren't hunting */
                 if (!hunting) {
                     firstHit = new int[]{botRow, botCol};
                     hunting = true;
@@ -215,6 +286,7 @@ public class Game {
                     directionRow = 0;
                     directionCol = 0;
                 } else {
+                    /* if we're hunting, one more time apply formulas */
                     if (directionRow == 0 && directionCol == 0) {
                         directionRow = botRow - firstHit[0];
                         directionCol = botCol - firstHit[1];
@@ -223,10 +295,15 @@ public class Game {
                     targetCol = botCol + directionCol;
                 }
 
+                /* we find wounded/destroyed ship */
                 shipWrecked = whatsShip(yourMap, botRow, botCol, ourShips);
+                /* we tag hit */
                 markShipHit(shipWrecked, botRow, botCol, ourShips);
+                /* we find the ship status (wounded, destroyed) */
                 shipStatus = isShipKilled(shipWrecked, ourShips) ? "killed" : "wounded";
 
+                /* if ship is destroyed, then we tag all fields in noBotWillHit as checked, reset variables and
+                   output the result and the map to user */
                 if (shipStatus.equals("killed")) {
                     for (int i = 0; i < noBotWillHit.size(); i+=2) {
                         int irow = noBotWillHit.get(i);
@@ -250,10 +327,13 @@ public class Game {
                     System.out.println("Your ship is wounded!");
                 }
             } else {
+                /* if bot missed, output result to user */
                 yourMap[botRow][botCol] = "B";
                 printMap(yourMap, mod);
                 System.out.println("The bot missed!");
+                /* if we are hunting, have first hit and direction then */
                 if (hunting && firstHit != null && (directionRow != 0 || directionCol != 0)) {
+                    /* we changing the direction and apply him to targetRow and targetCol */
                     directionRow = -directionRow;
                     directionCol = -directionCol;
                     targetRow = firstHit[0] + directionRow;
@@ -261,9 +341,10 @@ public class Game {
                 }
             }
 
-//            System.out.println(isProbing + " " + isShipWrecked);
-//            printMap(botsMapHit);
+            // System.out.println(isProbing + " " + isShipWrecked);
+            // printMap(botsMapHit);
 
+            /* check game over */
             isStrAll = isGameOver();
             if (isStrAll.equals("draw")) {
                 System.out.println("Draw-Draw");
@@ -278,10 +359,10 @@ public class Game {
         }
     }
 
+    /* a method to check game over */
     public static String isGameOver() {
         String res = "false"; boolean isWeWon = true; boolean isBotWon = true;
 
-        // проверка на убитость quartet
         isWeWon = isShipKilled("quartet", anotherShips) && isShipKilled("trio1", anotherShips) &&
                 isShipKilled("trio2", anotherShips) && isShipKilled("duo1", anotherShips) &&
                 isShipKilled("duo2", anotherShips) && isShipKilled("uno1", anotherShips) &&
@@ -299,30 +380,29 @@ public class Game {
         return res;
     }
 
-    // метод для получения рандомных координат от бота для удара
+    // a method to get random bot's coordinates for shot
     public static int[] getBotCoordinate(String[][] map, int[][] fieldMap) {
         int[] resCoordinates = new int[2];
         Random random = new Random();
 
-        // генерация рандомного поля
+        // generating random field
         int resRandom = random.nextInt(fieldMap.length);
         resCoordinates[0] = fieldMap[resRandom][0];
         resCoordinates[1] = fieldMap[resRandom][1];
-        // удаляем выбранный елемент
+        // we delete chose element
         deleteFromArray(fieldMap, resRandom);
 
         return resCoordinates;
     }
 
     public static void deleteFromArray(int[][] array, int range) {
-        // сдвигаем элементы влево начиная с range
         for (int i = range; i < array.length - 1; i++) {
             array[i] = array[i + 1];
         }
-        // последний элемент делаем null
         array[array.length - 1] = null;
     }
 
+    /* a method to check ship's destroy */
     public static boolean isShipKilled(String shipType, Ships classType) {
         if (shipType.equals("quartet")) {
             for (int i = 0; i < classType.quartet.length; i++) {
@@ -365,7 +445,8 @@ public class Game {
         return false;
     }
 
-        public static void markShipHit(String shipType, int row, int col, Ships classType) {
+    /* a method to tag about destroy of the ship's deck */
+    public static void markShipHit(String shipType, int row, int col, Ships classType) {
         if (shipType.equals("quartet")) {
             for (int i = 0; i < classType.quartet.length; i++) {
                 if (classType.quartet[i][0] == row && classType.quartet[i][1] == col) {
@@ -409,79 +490,7 @@ public class Game {
         }
     }
 
-    public static String getShipStatus(String ship, String owner) {
-        if (owner.equals("another")) {
-            if (ship.equals("quartet")) {
-                for (int i = 0; i < anotherShips.quartet.length; i++) {
-                    if (anotherShips.quartet[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("trio1")) {
-                for (int i = 0; i < anotherShips.trio1.length; i++) {
-                    if (anotherShips.trio1[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("trio2")) {
-                for (int i = 0; i < anotherShips.trio2.length; i++) {
-                    if (anotherShips.trio2[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("duo1")) {
-                for (int i = 0; i < anotherShips.duo1.length; i++) {
-                    if (anotherShips.duo1[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("duo2")) {
-                for (int i = 0; i < anotherShips.duo2.length; i++) {
-                    if (anotherShips.duo2[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("uno1") || ship.equals("uno2")) {
-                return "killed";
-            }
-        } else {
-            if (ship.equals("quartet")) {
-                for (int i = 0; i < ourShips.quartet.length; i++) {
-                    if (ourShips.quartet[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("trio1")) {
-                for (int i = 0; i < ourShips.trio1.length; i++) {
-                    if (ourShips.trio1[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("trio2")) {
-                for (int i = 0; i < ourShips.trio2.length; i++) {
-                    if (ourShips.trio2[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("duo1")) {
-                for (int i = 0; i < ourShips.duo1.length; i++) {
-                    if (ourShips.duo1[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("duo2")) {
-                for (int i = 0; i < ourShips.duo2.length; i++) {
-                    if (ourShips.duo2[i][2] != -1) return "wounded";
-                }
-                return "killed";
-            }
-            if (ship.equals("uno1") || ship.equals("uno2")) {
-                return "killed";
-            }
-        }
-        return "wounded";
-    }
-
+    /* a method to find name of the ship by field */
     public static String whatsShip(String[][] map, int row, int col, Ships owner) {
         if (owner.quartet != null) {
             for (int i = 0; i < owner.quartet.length; i++) {
@@ -514,49 +523,47 @@ public class Game {
         return "unknown";
     }
 
-    // метод для получения координат одного игрового поля
+    // a method to get coordinates
     public static int[] getCoordinate(String[][] map) {
-        /* создаем переменные для хранения координат, которые
-           потом будут заключены в массив res и возвращены */
+        /* we create variables to store the coordinates, which
+            will then be enclosed in the res array and returned */
         int firstCoordinate = -1; int secondCoordinate = -1; int[] res;
 
-        // получаем первую цифровую координату
+        // we get the first digital coordinate
         System.out.println("Numeric coordinate, write /clear in order to enter the ship's coordinates again --> ");
         while (firstCoordinate == -1) {
             firstCoordinate = getInt();
             if (firstCoordinate == -2) {
-                // возвращаем этот же метод', если пользователь ввел /clear
+                // return the same method if the user enters /clear
                 System.out.println("Please write correct numeric coordinate");
                 return getCoordinate(map);
             }
         }
-        // получаем вторую буквенную координату (уже в индексе)
+        // we get the second letter coordinate (already in the index)
         System.out.printf("%nLetter coordinate, write /clear in order to enter the ship's coordinates again --> ");
         while (secondCoordinate == -1) {
             secondCoordinate = getLetter();
             if (secondCoordinate == -2) {
-                // возвращаем нулл, если пользователь ввел /clear
+                // return null if the user enters /clear
                 return null;
             }
         }
-        // заключаем в массив координаты поля в массив и возвращаем его
+        // we put the field coordinates in an array and return it
         res = new int[]{secondCoordinate, firstCoordinate, 0};
         return res;
     }
     
-    // метод для получения цифровой координаты поля
+    // a method for obtaining the digital coordinates of a field
     public static int getLetter() {
-        /* инициализируем переменную strRes, куда мы
-           будем заключать букву, которую вводит поль-
-           зователь и переменную res, которую мы будем
-           возвращать, в ней будет хранится индекс с
-           нуля столбца нашего поля */
+        /* we initialize the strRes variable, where we
+         will store the letter that the user enters, and the res variable,
+            which will store the index of the column in our field. */
         String strRes; int res = 0;
         strRes = scanner.nextLine().trim();
         if (strRes.equalsIgnoreCase("/clear")) {
             return -2;
         }
-        // проверяем вписал ли пользователь то букву от A до J
+        // we check if the user has entered a letter from A to J
         String[] letters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
         boolean isAvailable = false;
         check: for (int i = 0; i < letters.length; i++) {
@@ -565,8 +572,8 @@ public class Game {
                 break check;
             }
         }
-        /* если это не так, возвращаем -1 и выводим текст,
-           иначе возвращаем целое число */
+        /* if this is not the case, return -1 and display the text,
+            otherwise return an integer */
         if (!(isAvailable)) {
             System.out.printf("%nPlease enter a correct letter, write /clear in order to enter the ship's coordinates again --> ");
             return -1;
@@ -580,7 +587,7 @@ public class Game {
         }
     }
     
-    // метод для получения цифровой координаты поля
+    // a method to get a number coordinate of the field
     public static int getInt() {
         String strRes;
 
@@ -588,33 +595,34 @@ public class Game {
             try {
                 strRes = scanner.nextLine().trim();
 
-                // проверка на то, вписал ли пользователь /clear
+                // checking whether the user has entered /clear
                 if (strRes.equalsIgnoreCase("/clear")) {
                     return -2;
                 }
 
-                // проверка на то, чтобы результат был в диапазоне от 1 до 10.
+                // check that the result is between 1 and 10
                 if (strRes.matches("[1-9]|10")) {
                     int res = Integer.parseInt(strRes);
-                // уменьшаем res для подсчета массива
+                // reducing res to count the array
                 res -= 1;
                     System.out.println();
-                    return res;  // сразу возвращаем если да
+                    return res;  // we refund you immediately if yes
                 } else {
                     System.out.printf("%nPlease write a number from 1 to 10, or /clear to restart --> ");
-                    // возвращаем -1, чтобы getCoordinates понял, что нужно повторить метод getInt еще раз
+                    // we return -1 so that getCoordinates understands that it needs to repeat the getInt method
                     return -1;
                 }
 
             } catch (Exception e) {
                 System.out.printf("%nError reading input --> ");
                 scanner.nextLine();
-                // возвращаем -1, чтобы getCoordinates понял, что нужно повторить метод getInt еще раз
+                // we return -1 so that getCoordinates understands that it needs to repeat the getInt method
                 return -1;
             }
         }
     }
 
+    /* a method to output map in colored mode or uncolored mode */
     public static void printMap(String[][] map, int mod) {
         if (mod == 1) {
             System.out.println("   1  2  3  4  5  6  7  8  9  10");
